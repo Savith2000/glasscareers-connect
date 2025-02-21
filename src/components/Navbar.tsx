@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { BriefcaseIcon, UserIcon, ChatBubbleLeftIcon } from "lucide-react";
+import { BriefcaseIcon, UserIcon, MessageCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import Chatbot from "./Chatbot";
@@ -35,7 +35,7 @@ const Navbar = () => {
             className="flex items-center space-x-2"
             onClick={() => setIsChatOpen(true)}
           >
-            <ChatBubbleLeftIcon className="w-5 h-5" />
+            <MessageCircle className="w-5 h-5" />
             <span>Chat Assistant</span>
           </Button>
         </div>
