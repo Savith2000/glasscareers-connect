@@ -11,6 +11,7 @@ import AdminPanel from "./pages/AdminPanel";
 import JobListings from "./pages/JobListings";
 import ApplyJob from "./pages/ApplyJob";
 import NotFound from "./pages/NotFound";
+import RouteGuard from "./components/auth/RouteGuard";
 
 const queryClient = new QueryClient();
 
@@ -25,10 +26,38 @@ const App = () => (
           <main className="container mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/submit-job" element={<SubmitJob />} />
-              <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/jobs" element={<JobListings />} />
-              <Route path="/apply/:id" element={<ApplyJob />} />
+              <Route
+                path="/submit-job"
+                element={
+                  <RouteGuard allowedRoles={['business', 'admin']}>
+                    <SubmitJob />
+                  </RouteGuard>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <RouteGuard allowedRoles={['admin']}>
+                    <AdminPanel />
+                  </RouteGuard>
+                }
+              />
+              <Route
+                path="/jobs"
+                element={
+                  <RouteGuard allowedRoles={['student', 'admin']}>
+                    <JobListings />
+                  </RouteGuard>
+                }
+              />
+              <Route
+                path="/apply/:id"
+                element={
+                  <RouteGuard allowedRoles={['student']}>
+                    <ApplyJob />
+                  </RouteGuard>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
