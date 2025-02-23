@@ -1,26 +1,55 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
 const SubmitJob = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [jobData, setJobData] = useState({
     title: "",
     company: "",
     description: "",
+    requirements: "",
     location: "",
-    salary: "",
+    salary_range: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement job submission logic
-    toast({
-      title: "Job Posted",
-      description: "Your job posting has been submitted for review.",
-    });
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to submit a job");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('jobs')
+        .insert({
+          ...jobData,
+          created_by: user.id,
+          status: 'draft'
+        });
+
+      if (error) throw error;
+
+      toast.success("Job posted successfully!");
+      navigate('/jobs');
+    } catch (error) {
+      toast.error("Failed to submit job posting");
+      console.error("Error submitting job:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,7 +81,16 @@ const SubmitJob = () => {
               <Textarea
                 value={jobData.description}
                 onChange={(e) => setJobData({ ...jobData, description: e.target.value })}
-                placeholder="Job description and requirements"
+                placeholder="Job description"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Requirements</label>
+              <Textarea
+                value={jobData.requirements}
+                onChange={(e) => setJobData({ ...jobData, requirements: e.target.value })}
+                placeholder="Job requirements"
                 required
               />
             </div>
@@ -68,13 +106,21 @@ const SubmitJob = () => {
             <div>
               <label className="text-sm font-medium mb-2 block">Salary Range</label>
               <Input
-                value={jobData.salary}
-                onChange={(e) => setJobData({ ...jobData, salary: e.target.value })}
+                value={jobData.salary_range}
+                onChange={(e) => setJobData({ ...jobData, salary_range: e.target.value })}
                 placeholder="e.g. $50,000 - $70,000"
-                required
               />
             </div>
-            <Button type="submit" className="w-full">Submit Job Posting</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Job Posting'
+              )}
+            </Button>
           </form>
         </div>
       </div>
