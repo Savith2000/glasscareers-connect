@@ -1,12 +1,32 @@
 
-import { Link } from "react-router-dom";
-import { BriefcaseIcon, UserIcon, MessageCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { BriefcaseIcon, UserIcon, MessageCircle, LogOutIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import Chatbot from "./Chatbot";
+import { supabase } from "@/lib/supabase";
+import { toast } from "./ui/use-toast";
 
 const Navbar = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <nav className="glass-effect sticky top-0 z-50 px-4 py-4 mb-8">
@@ -37,6 +57,15 @@ const Navbar = () => {
           >
             <MessageCircle className="w-5 h-5" />
             <span>Chat Assistant</span>
+          </Button>
+
+          <Button
+            variant="destructive"
+            className="flex items-center space-x-2"
+            onClick={handleLogout}
+          >
+            <LogOutIcon className="w-5 h-5" />
+            <span>Logout</span>
           </Button>
         </div>
       </div>
