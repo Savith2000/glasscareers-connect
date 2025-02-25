@@ -2,14 +2,34 @@
 import { Link, useNavigate } from "react-router-dom";
 import { BriefcaseIcon, UserIcon, MessageCircle, LogOutIcon } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Chatbot from "./Chatbot";
 import { supabase } from "@/lib/supabase";
 import { toast } from "./ui/use-toast";
+import type { UserRole } from "@/lib/supabase-types";
 
 const Navbar = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUserRole(session.user.user_metadata.role as UserRole);
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserRole(session?.user?.user_metadata.role as UserRole || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -28,6 +48,8 @@ const Navbar = () => {
     }
   };
 
+  if (!userRole) return null;
+
   return (
     <nav className="glass-effect sticky top-0 z-50 px-4 py-4 mb-8">
       <div className="container mx-auto flex items-center justify-between">
@@ -36,19 +58,35 @@ const Navbar = () => {
         </Link>
         
         <div className="flex items-center space-x-6">
-          <Link to="/jobs">
-            <Button variant="ghost" className="flex items-center space-x-2">
-              <BriefcaseIcon className="w-5 h-5" />
-              <span>Job Listings</span>
-            </Button>
-          </Link>
+          {/* Show Job Listings for students and admins */}
+          {(userRole === 'student' || userRole === 'admin') && (
+            <Link to="/jobs">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <BriefcaseIcon className="w-5 h-5" />
+                <span>Job Listings</span>
+              </Button>
+            </Link>
+          )}
           
-          <Link to="/submit-job">
-            <Button variant="ghost" className="flex items-center space-x-2">
-              <UserIcon className="w-5 h-5" />
-              <span>Employers</span>
-            </Button>
-          </Link>
+          {/* Show Submit Job for business owners and admins */}
+          {(userRole === 'business' || userRole === 'admin') && (
+            <Link to="/submit-job">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <UserIcon className="w-5 h-5" />
+                <span>Submit Job</span>
+              </Button>
+            </Link>
+          )}
+          
+          {/* Show Admin Panel for admins only */}
+          {userRole === 'admin' && (
+            <Link to="/admin">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <UserIcon className="w-5 h-5" />
+                <span>Admin Panel</span>
+              </Button>
+            </Link>
+          )}
           
           <Button
             variant="ghost"
