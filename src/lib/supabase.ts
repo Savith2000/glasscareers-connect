@@ -8,4 +8,10 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Anon Key. Please connect your Supabase project first.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+});
