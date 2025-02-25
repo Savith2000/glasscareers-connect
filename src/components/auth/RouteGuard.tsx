@@ -16,6 +16,8 @@ export default function RouteGuard({ children, allowedRoles }: RouteGuardProps) 
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("RouteGuard - Session:", session);
+      console.log("RouteGuard - User metadata:", session?.user?.user_metadata);
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -23,6 +25,8 @@ export default function RouteGuard({ children, allowedRoles }: RouteGuardProps) 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("RouteGuard - Auth state changed:", _event);
+      console.log("RouteGuard - New session:", session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
